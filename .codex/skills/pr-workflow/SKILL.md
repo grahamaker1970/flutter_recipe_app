@@ -1,6 +1,6 @@
 ---
 name: pr-workflow
-description: Create and edit GitHub pull requests with safe branch hygiene and markdown-safe PR descriptions. Use when Codex needs to create a PR, update a PR body or title, prepare PR body templates, or verify that PR markdown renders with real line breaks instead of escaped newline text.
+description: Create and edit GitHub pull requests with safe branch hygiene, Japanese-by-default PR writing, and markdown-safe PR descriptions. Use when Codex needs to create a PR, update a PR body or title, prepare PR body templates, or verify that PR markdown renders with real line breaks instead of escaped newline text.
 ---
 
 # PR Workflow
@@ -8,6 +8,7 @@ description: Create and edit GitHub pull requests with safe branch hygiene and m
 ## Required Rules
 - Create a dedicated new branch for each pull request.
 - Never create a pull request from a reused branch.
+- Write pull request titles and descriptions in Japanese by default.
 - Never pass escaped newline sequences like `\n` as PR body content.
 - Use real line breaks via a body file, then verify rendered markdown.
 
