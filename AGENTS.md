@@ -20,3 +20,8 @@
 - If unrelated commits or diffs are present, create a new working branch from the latest `main`, then carry only required diffs (for example, by cherry-pick) before starting.
 - Multiple commits during the same work unit are allowed.
 - Before creating a PR (or requesting review), re-check that no unrelated diffs are mixed in.
+
+## Documentation Sync Rule
+- If app functionality is added, changed, or removed, update related documentation in the same work unit before requesting review.
+- At minimum, review `docs/functional-requirements.md` and `docs/architecture.md` and update affected sections.
+- If no documentation update is needed, state the reason explicitly in the pull request description.
