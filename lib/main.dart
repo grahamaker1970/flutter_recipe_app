@@ -52,17 +52,20 @@ class IngredientItem {
     required this.name,
     required this.baseAmount,
     required this.currentAmount,
+    required this.unit,
   });
 
   final String name;
   final double baseAmount;
   final double currentAmount;
+  final String unit;
 
-  IngredientItem copyWith({double? currentAmount}) {
+  IngredientItem copyWith({double? currentAmount, String? unit}) {
     return IngredientItem(
       name: name,
       baseAmount: baseAmount,
       currentAmount: currentAmount ?? this.currentAmount,
+      unit: unit ?? this.unit,
     );
   }
 }
@@ -90,11 +93,13 @@ class NoteItem {
     required this.name,
     required this.baseAmount,
     required this.adjustedAmount,
+    required this.unit,
   });
 
   final String name;
   final double baseAmount;
   final double adjustedAmount;
+  final String unit;
 }
 
 class DbService {
@@ -142,8 +147,9 @@ class DbService {
   Future<Database> _openDatabase(String dbPath) {
     return openDatabase(
       dbPath,
-      version: 1,
+      version: 2,
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
     );
   }
 
@@ -159,14 +165,29 @@ class DbService {
       'CREATE TABLE recipes (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL)',
     );
     await db.execute(
-      'CREATE TABLE ingredients (id INTEGER PRIMARY KEY AUTOINCREMENT, recipe_id INTEGER NOT NULL, name TEXT NOT NULL, base_amount REAL NOT NULL)',
+      "CREATE TABLE ingredients (id INTEGER PRIMARY KEY AUTOINCREMENT, recipe_id INTEGER NOT NULL, name TEXT NOT NULL, base_amount REAL NOT NULL, unit TEXT NOT NULL DEFAULT '')",
     );
     await db.execute(
       'CREATE TABLE notes (id INTEGER PRIMARY KEY AUTOINCREMENT, recipe_id INTEGER NOT NULL, title TEXT NOT NULL, memo TEXT, created_at TEXT NOT NULL)',
     );
     await db.execute(
-      'CREATE TABLE note_items (id INTEGER PRIMARY KEY AUTOINCREMENT, note_id INTEGER NOT NULL, name TEXT NOT NULL, base_amount REAL NOT NULL, adjusted_amount REAL NOT NULL)',
+      "CREATE TABLE note_items (id INTEGER PRIMARY KEY AUTOINCREMENT, note_id INTEGER NOT NULL, name TEXT NOT NULL, base_amount REAL NOT NULL, adjusted_amount REAL NOT NULL, unit TEXT NOT NULL DEFAULT '')",
     );
+  }
+
+  Future<void> _onUpgrade(
+    Database db,
+    int oldVersion,
+    int newVersion,
+  ) async {
+    if (oldVersion < 2) {
+      await db.execute(
+        "ALTER TABLE ingredients ADD COLUMN unit TEXT NOT NULL DEFAULT ''",
+      );
+      await db.execute(
+        "ALTER TABLE note_items ADD COLUMN unit TEXT NOT NULL DEFAULT ''",
+      );
+    }
   }
 
   Future<List<MasterRecipe>> fetchRecipes() async {
@@ -187,6 +208,7 @@ class DbService {
               name: ingredient['name'] as String,
               baseAmount: (ingredient['base_amount'] as num).toDouble(),
               currentAmount: (ingredient['base_amount'] as num).toDouble(),
+              unit: ((ingredient['unit'] as String?) ?? '').trim(),
             ),
           )
           .toList();
@@ -210,6 +232,7 @@ class DbService {
         'recipe_id': recipeId,
         'name': ingredient.name,
         'base_amount': ingredient.baseAmount,
+        'unit': ingredient.unit,
       });
     }
     await batch.commit(noResult: true);
@@ -239,6 +262,7 @@ class DbService {
         'recipe_id': id,
         'name': ingredient.name,
         'base_amount': ingredient.baseAmount,
+        'unit': ingredient.unit,
       });
     }
     await batch.commit(noResult: true);
@@ -290,6 +314,7 @@ class DbService {
         'name': item.name,
         'base_amount': item.baseAmount,
         'adjusted_amount': item.adjustedAmount,
+        'unit': item.unit,
       });
     }
     await batch.commit(noResult: true);
@@ -319,6 +344,7 @@ class DbService {
               name: item['name'] as String,
               baseAmount: (item['base_amount'] as num).toDouble(),
               adjustedAmount: (item['adjusted_amount'] as num).toDouble(),
+              unit: ((item['unit'] as String?) ?? '').trim(),
             ),
           )
           .toList();
@@ -505,6 +531,7 @@ class _MasterRecipeEditorScreenState extends State<MasterRecipeEditorScreen> {
             nameController: TextEditingController(text: item.name),
             baseController:
                 TextEditingController(text: formatAmount(item.baseAmount)),
+            unitController: TextEditingController(text: item.unit),
           ),
         );
       }
@@ -538,7 +565,9 @@ class _MasterRecipeEditorScreenState extends State<MasterRecipeEditorScreen> {
     for (final editor in _editors) {
       final ingredientName = editor.nameController.text.trim();
       final baseAmount = parseAmount(editor.baseController.text);
-      final isEmptyRow = ingredientName.isEmpty && baseAmount == null;
+      final unit = editor.unitController.text.trim();
+      final isEmptyRow =
+          ingredientName.isEmpty && baseAmount == null && unit.isEmpty;
       if (isEmptyRow) {
         continue;
       }
@@ -546,11 +575,16 @@ class _MasterRecipeEditorScreenState extends State<MasterRecipeEditorScreen> {
         _showMessage('Enter ingredient name and base amount.');
         return;
       }
+      if (unit.length > maxUnitLength) {
+        _showMessage('Unit must be at most $maxUnitLength characters.');
+        return;
+      }
       ingredients.add(
         IngredientItem(
           name: ingredientName,
           baseAmount: baseAmount,
           currentAmount: baseAmount,
+          unit: unit,
         ),
       );
     }
@@ -604,7 +638,7 @@ class _MasterRecipeEditorScreenState extends State<MasterRecipeEditorScreen> {
           ),
           const SizedBox(height: 16),
           const Text(
-            'Ingredients (base amount)',
+            'Ingredients (base amount + unit)',
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
@@ -635,19 +669,23 @@ class _IngredientEditor {
   _IngredientEditor({
     required this.nameController,
     required this.baseController,
+    required this.unitController,
   });
 
   factory _IngredientEditor.empty() => _IngredientEditor(
         nameController: TextEditingController(),
         baseController: TextEditingController(),
+        unitController: TextEditingController(),
       );
 
   final TextEditingController nameController;
   final TextEditingController baseController;
+  final TextEditingController unitController;
 
   void dispose() {
     nameController.dispose();
     baseController.dispose();
+    unitController.dispose();
   }
 }
 
@@ -680,6 +718,16 @@ class _IngredientEditorRow extends StatelessWidget {
               decoration: const InputDecoration(labelText: 'Base amount'),
               keyboardType:
                   const TextInputType.numberWithOptions(decimal: true),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: TextField(
+              controller: editor.unitController,
+              decoration: const InputDecoration(
+                labelText: 'Unit (optional)',
+              ),
+              maxLength: maxUnitLength,
             ),
           ),
           if (onRemove != null) ...[
@@ -720,6 +768,7 @@ class _LiveCalculatorScreenState extends State<LiveCalculatorScreen> {
             name: item.name,
             baseAmount: item.baseAmount,
             currentAmount: item.baseAmount,
+            unit: item.unit,
           ),
         )
         .toList();
@@ -822,6 +871,7 @@ class _LiveCalculatorScreenState extends State<LiveCalculatorScreen> {
               name: item.name,
               baseAmount: item.baseAmount,
               adjustedAmount: item.currentAmount,
+              unit: item.unit,
             ),
           )
           .toList(),
@@ -897,15 +947,22 @@ class _LiveCalculatorScreenState extends State<LiveCalculatorScreen> {
                         Expanded(
                           child: _ValueBlock(
                             label: 'Base',
-                            value: formatAmount(_items[i].baseAmount),
+                            value: formatAmountWithUnit(
+                              _items[i].baseAmount,
+                              _items[i].unit,
+                            ),
                           ),
                         ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: TextField(
                             controller: _controllers[i],
-                            decoration:
-                                const InputDecoration(labelText: 'Adjusted'),
+                            decoration: InputDecoration(
+                              labelText: 'Adjusted',
+                              suffixText: _items[i].unit.isEmpty
+                                  ? null
+                                  : _items[i].unit,
+                            ),
                             keyboardType: const TextInputType.numberWithOptions(
                               decimal: true,
                             ),
@@ -1002,7 +1059,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       Padding(
                         padding: const EdgeInsets.only(bottom: 4),
                         child: Text(
-                          '${item.name}  ${formatAmount(item.baseAmount)} -> ${formatAmount(item.adjustedAmount)}',
+                          '${item.name}  ${formatAmountWithUnit(item.baseAmount, item.unit)} -> ${formatAmountWithUnit(item.adjustedAmount, item.unit)}',
                         ),
                       ),
                   ],
@@ -1027,6 +1084,16 @@ double? parseAmount(String input) {
 String formatAmount(double value) {
   final fixed = value.toStringAsFixed(2);
   return fixed.replaceFirst(RegExp(r'\.?0+$'), '');
+}
+
+const int maxUnitLength = 20;
+
+String formatAmountWithUnit(double value, String unit) {
+  final normalizedUnit = unit.trim();
+  if (normalizedUnit.isEmpty) {
+    return formatAmount(value);
+  }
+  return '${formatAmount(value)} $normalizedUnit';
 }
 
 String formatDate(DateTime date) {

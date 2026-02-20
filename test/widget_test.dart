@@ -9,6 +9,13 @@ void main() {
     expect(formatAmount(12.34), '12.34');
   });
 
+  test('formatAmountWithUnit follows display rules', () {
+    expect(formatAmountWithUnit(100, 'g'), '100 g');
+    expect(formatAmountWithUnit(2, ''), '2');
+    expect(formatAmountWithUnit(2, '   '), '2');
+    expect(formatAmountWithUnit(1.5, ' ml '), '1.5 ml');
+  });
+
   test('parseAmount supports comma and dot', () {
     expect(parseAmount('123.4'), 123.4);
     expect(parseAmount('123,4'), 123.4);
