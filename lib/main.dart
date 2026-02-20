@@ -726,6 +726,7 @@ class _IngredientEditorRow extends StatelessWidget {
               controller: editor.unitController,
               decoration: const InputDecoration(
                 labelText: 'Unit (optional)',
+                counterText: '',
               ),
               maxLength: maxUnitLength,
             ),
@@ -787,7 +788,7 @@ class _LiveCalculatorScreenState extends State<LiveCalculatorScreen> {
     super.dispose();
   }
 
-  void _applyRatio(double ratio) {
+  void _applyRatio(double ratio, {int? sourceIndex}) {
     if (ratio.isNaN || ratio.isInfinite) {
       return;
     }
@@ -797,7 +798,9 @@ class _LiveCalculatorScreenState extends State<LiveCalculatorScreen> {
       for (int i = 0; i < _items.length; i++) {
         final adjusted = _items[i].baseAmount * ratio;
         _items[i] = _items[i].copyWith(currentAmount: adjusted);
-        _controllers[i].text = formatAmount(adjusted);
+        if (i != sourceIndex) {
+          _controllers[i].text = formatAmount(adjusted);
+        }
       }
     });
     _isUpdating = false;
@@ -815,7 +818,7 @@ class _LiveCalculatorScreenState extends State<LiveCalculatorScreen> {
     if (base == 0) {
       return;
     }
-    _applyRatio(newValue / base);
+    _applyRatio(newValue / base, sourceIndex: index);
   }
 
   Future<void> _saveNote() async {
