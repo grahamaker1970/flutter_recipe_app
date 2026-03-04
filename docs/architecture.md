@@ -46,9 +46,9 @@
 - `notes` 1:N `note_items`
 
 ### 3.3 マイグレーション
-- DB version は `2`。
-- `v1 -> v2` で `ingredients.unit` と `note_items.unit` を追加する。
-- 既存データは `unit = ''`（空文字）で互換性を維持する。
+- DB version は `1`。
+- `ingredients.unit` と `note_items.unit` は初期スキーマに含める（マイグレーション無し）。
+- 開発中は DB 変更時にアプリをアンインストールして再インストールする運用とする。
 
 ## 4. 主要実行フロー
 

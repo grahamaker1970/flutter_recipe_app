@@ -147,9 +147,8 @@ class DbService {
   Future<Database> _openDatabase(String dbPath) {
     return openDatabase(
       dbPath,
-      version: 2,
+      version: 1,
       onCreate: _onCreate,
-      onUpgrade: _onUpgrade,
     );
   }
 
@@ -173,21 +172,6 @@ class DbService {
     await db.execute(
       "CREATE TABLE note_items (id INTEGER PRIMARY KEY AUTOINCREMENT, note_id INTEGER NOT NULL, name TEXT NOT NULL, base_amount REAL NOT NULL, adjusted_amount REAL NOT NULL, unit TEXT NOT NULL DEFAULT '')",
     );
-  }
-
-  Future<void> _onUpgrade(
-    Database db,
-    int oldVersion,
-    int newVersion,
-  ) async {
-    if (oldVersion < 2) {
-      await db.execute(
-        "ALTER TABLE ingredients ADD COLUMN unit TEXT NOT NULL DEFAULT ''",
-      );
-      await db.execute(
-        "ALTER TABLE note_items ADD COLUMN unit TEXT NOT NULL DEFAULT ''",
-      );
-    }
   }
 
   Future<List<MasterRecipe>> fetchRecipes() async {
