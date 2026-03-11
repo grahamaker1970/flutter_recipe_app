@@ -11,9 +11,11 @@ description: Create and edit GitHub pull requests with safe branch hygiene, Japa
 - Write pull request titles and descriptions in Japanese by default.
 - Never pass escaped newline sequences like `\n` as PR body content.
 - Always save PR body files as UTF-8 (without BOM). Do not rely on shell default encodings.
+- Name temporary PR body files as `pr-body-<topic>.md` in the repository root.
 - Use real line breaks via a body file, then verify rendered markdown.
 - After creating or editing a PR, verify `body` via `gh pr view <number> --json body,title,url`.
 - If mojibake is detected, rewrite the body file in UTF-8 (without BOM) and run `gh pr edit --body-file` immediately.
+- After creating or editing a PR, delete temporary PR body files matching `pr-body-*.md`.
 - For functional changes, confirm related docs are updated or include a clear reason in the PR body for why updates are unnecessary.
 
 ## Create a Pull Request
@@ -23,11 +25,13 @@ description: Create and edit GitHub pull requests with safe branch hygiene, Japa
    - Or a short reason if no documentation update was needed
 3. Create the PR with `gh pr create --title "<title>" --body-file <path-to-body-file>`
 4. Verify rendering and encoding with `gh pr view <number> --json body,title,url`
+5. Delete the temporary PR body file (`pr-body-*.md`).
 
 ## Edit an Existing Pull Request
 1. Update the same body file or create a new UTF-8 (without BOM) file with real line breaks.
 2. Run `gh pr edit <number> --title "<title>" --body-file <path-to-body-file>`
 3. Verify rendered markdown and encoding again with `gh pr view <number> --json body,title,url`.
+4. Delete the temporary PR body file (`pr-body-*.md`).
 
 ## PowerShell Encoding Tip
 - In PowerShell, prefer explicit UTF-8 (without BOM) writes:

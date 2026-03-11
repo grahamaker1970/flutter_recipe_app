@@ -4,3 +4,8 @@
 
 # Flutter/Dart generated tool metadata
 .dart_tool/
+/build/
+/.flutter-plugins-dependencies
+
+# Temporary files for PR workflow
+/pr-body-*.md
