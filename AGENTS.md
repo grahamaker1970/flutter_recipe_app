@@ -2,11 +2,11 @@
 
 ## Pull Request Rule
 - Use the `pr-workflow` skill for branch hygiene, Japanese PR writing, PR description formatting, and post-create checks.
-- Skill file: `c:/Projects/ws/flutter_recipe_app/.codex/skills/pr-workflow/SKILL.md`
+- Skill file: `agent-skills/pr-workflow/SKILL.md`
 
 ## Git History Hygiene Rule
 - Use the `git-history-hygiene` skill before starting a new goal-oriented work unit and before creating a PR/review request.
-- Skill file: `c:/Projects/ws/flutter_recipe_app/.codex/skills/git-history-hygiene/SKILL.md`
+- Skill file: `agent-skills/git-history-hygiene/SKILL.md`
 
 ## Rule Update Meta Rule
 - Treat user instructions that indicate recurring behavior (for example: "always", "every time", "from now on", "rule") as persistent rule candidates.
