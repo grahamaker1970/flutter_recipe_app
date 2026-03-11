@@ -25,3 +25,8 @@
 - If app functionality is added, changed, or removed, update related documentation in the same work unit before requesting review.
 - At minimum, review `docs/functional-requirements.md` and `docs/architecture.md` and update affected sections.
 - If no documentation update is needed, state the reason explicitly in the pull request description.
+
+## Workspace Folder Rule
+- By default, do not create sibling working folders with `git worktree add`.
+- Perform work inside the currently opened repository folder by switching branches (`git switch` / `git checkout -b`).
+- If using an additional worktree is necessary, get explicit user approval before creating it.
