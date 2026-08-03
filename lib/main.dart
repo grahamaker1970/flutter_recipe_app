@@ -21,7 +21,7 @@ class RecipeApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = ColorScheme.fromSeed(seedColor: Colors.teal);
     return MaterialApp(
-      title: 'Proportional Recipe Calculator',
+      title: 'RECIPE-1',
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: colorScheme,
